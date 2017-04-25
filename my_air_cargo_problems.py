@@ -13,7 +13,6 @@ from my_planning_graph import PlanningGraph
 class AirCargoProblem(Problem):
     def __init__(self, cargos, planes, airports, initial: FluentState, goal: list):
         """
-
         :param cargos: list of str
             cargos in the problem
         :param planes: list of str
@@ -25,6 +24,7 @@ class AirCargoProblem(Problem):
         :param goal: list of expr
             literal fluents required for goal test
         """
+
         self.state_map = initial.pos + initial.neg
         self.initial_state_TF = encode_state(initial, self.state_map)
         Problem.__init__(self, self.initial_state_TF, goal=goal)
@@ -55,10 +55,28 @@ class AirCargoProblem(Problem):
         def load_actions():
             '''Create all concrete Load actions and return a list
 
+            Action(Load(c, p, a),
+                PRECOND: At(c, a) ∧ At(p, a) ∧ Cargo(c) ∧ Plane(p) ∧ Airport(a)
+                EFFECT: ¬ At(c, a) ∧ In(c, p))
+
             :return: list of Action objects
             '''
             loads = []
-            # TODO create all load ground actions from the domain Load action
+
+            for ap in self.airports:
+                for pln in self.planes:
+                    for crg in self.cargos:
+                        precond_pos = [expr("At({}, {})".format(pln, ap)),
+                                       expr("At({}, {})".format(crg, ap))
+                                       ]
+                        precond_neg = []
+                        effect_add = [expr("In({}, {})".format(crg, pln))]
+                        effect_rem = [expr("At({}, {})".format(crg, ap))]
+                        load = Action(expr("Load({}, {}, {})".format(crg, pln, ap)),
+                                      [precond_pos, precond_neg],
+                                      [effect_add, effect_rem])
+                        loads.append(load)
+
             return loads
 
         def unload_actions():
@@ -67,6 +85,20 @@ class AirCargoProblem(Problem):
             :return: list of Action objects
             '''
             unloads = []
+
+            for ap in self.airports:
+                for pln in self.planes:
+                    for crg in self.cargos:
+                        precond_pos = [expr("At({}, {})".format(pln, ap)),
+                                       expr("At({}, {})".format(crg, ap))
+                                       ]
+                        precond_neg = []
+                        effect_add = [expr("In({}, {})".format(crg, pln))]
+                        effect_rem = [expr("At({}, {})".format(crg, ap))]
+                        load = Action(expr("Load({}, {}, {})".format(crg, pln, ap)),
+                                      [precond_pos, precond_neg],
+                                      [effect_add, effect_rem])
+                        loads.append(load)
             # TODO create all Unload ground actions from the domain Unload action
             return unloads
 
